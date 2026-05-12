@@ -33,4 +33,10 @@
         tools:layout="@layout/fragment_view_item">
 
     </fragment>
+
+    <fragment
+        android:id="@+id/map_fragment"
+        android:name="com.example.task70.Fragments.MapFragment"
+        tools:layout="@layout/fragment_map"/>
+
 </navigation>

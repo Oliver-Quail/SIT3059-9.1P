@@ -82,8 +82,10 @@ public class LostAndFoundFragment extends Fragment {
                 @SuppressLint("Range") int id = cursor.getInt(cursor.getColumnIndex(DbHandler.LostItem.COLUMN_ID));
                 @SuppressLint("Range") int postType = cursor.getInt(cursor.getColumnIndex(DbHandler.LostItem.COLUMN_POST_TYPE));
                 @SuppressLint("Range") String date = cursor.getString(cursor.getColumnIndex(DbHandler.LostItem.COLUMN_DATE));
+                @SuppressLint("Range") int latitude = cursor.getInt(cursor.getColumnIndex(DbHandler.LostItem.COLUMN_LATITUDE));
+                @SuppressLint("Range") int logitude = cursor.getInt(cursor.getColumnIndex(DbHandler.LostItem.COLUMN_LOGITUDE));
 
-                Item item = new Item(name, phoneNumber, description, location, catergory, image, id, postType, date);
+                Item item = new Item(name, phoneNumber, description, location, catergory, image, id, postType, date, latitude, logitude);
 
                 items.add(item);
 

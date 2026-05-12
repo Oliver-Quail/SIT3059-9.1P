@@ -17,7 +17,7 @@ public class DbHandler extends SQLiteOpenHelper {
         String itemsTable = "CREATE TABLE " + LostItem.TABLE_NAME + " ( " + LostItem.COLUMN_ID + " INTEGER PRIMARY KEY, " +
                 LostItem.COLUMN_NAME + " TEXT NOT NULL, " + LostItem.COLUMN_PHONE + " TEXT NOT NULL, " + LostItem.COLUMN_DESCRIPTION + " TEXT NOT NULL, " +
                 LostItem.COLUMN_LOCATION + " TEXT NOT NULL, " + LostItem.COLUMN_CATERGORY + " INTEGER NOT NULL, " + LostItem.COLUMN_IMAGE + " TEXT NOT NULL, "
-                + LostItem.COLUMN_POST_TYPE + " INTEGER NOT NULL, "+ LostItem.COLUMN_DATE +" TEXT NOT NULL)";
+                + LostItem.COLUMN_POST_TYPE + " INTEGER NOT NULL, "+ LostItem.COLUMN_DATE +" TEXT NOT NULL, " + LostItem.COLUMN_LATITUDE + " INTEGER NOT NULL, " + LostItem.COLUMN_LOGITUDE + " INTEGER NOT NULL)";
 
         db.execSQL(itemsTable);
     }
@@ -40,6 +40,8 @@ public class DbHandler extends SQLiteOpenHelper {
         public static final String COLUMN_ID = "id";
         public static final String COLUMN_POST_TYPE = "post_type";
         public static final String COLUMN_DATE = "date";
+        public static final String COLUMN_LATITUDE = "latitude";
+        public static final String COLUMN_LOGITUDE = "logitude";
 
 
     }

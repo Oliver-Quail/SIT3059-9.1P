@@ -10,8 +10,10 @@ public class Item {
     public int id;
     public int postType;
     public String date;
+    public int latitude;
+    public int logitude;
 
-    public Item(String name, String phoneNumber, String description, String location, String catergory, String image, int id, int postType, String date) {
+    public Item(String name, String phoneNumber, String description, String location, String catergory, String image, int id, int postType, String date, int latitude, int logitude) {
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.description = description;
@@ -21,6 +23,8 @@ public class Item {
         this.id = id;
         this.postType = postType;
         this.date = date;
+        this.latitude = latitude;
+        this.logitude = logitude;
     }
 
     public String getName() {

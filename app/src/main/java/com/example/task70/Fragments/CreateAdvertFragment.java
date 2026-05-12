@@ -2,25 +2,36 @@ package com.example.task70.Fragments;
 
 import static android.app.appsearch.AppSearchResult.RESULT_OK;
 
+import android.Manifest;
+import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
+import android.location.Address;
+import android.location.Geocoder;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 
 import android.provider.MediaStore;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -30,11 +41,27 @@ import android.widget.Toast;
 
 import com.example.task70.Database.DbHandler;
 import com.example.task70.R;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.Priority;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.CancellationTokenSource;
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.AutocompleteSupportFragment;
+import com.google.android.libraries.places.widget.listener.PlaceSelectionListener;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.sql.Array;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
 
 
 public class CreateAdvertFragment extends Fragment {
@@ -44,11 +71,15 @@ public class CreateAdvertFragment extends Fragment {
     EditText phoneInput;
     EditText descriptionInput;
     EditText dateInput;
-    EditText location;
     Spinner catergorySpinner;
     Button imageButton;
     Button saveButton;
     String image;
+    LatLng latLng;
+    public String location;
+    Button getCurrentLocationButton;
+    FusedLocationProviderClient fusedLocationClient;
+
 
     String[] catergories = new String[]{"Clothing", "Electronics", "Other"};
 
@@ -80,9 +111,9 @@ public class CreateAdvertFragment extends Fragment {
         phoneInput = view.findViewById(R.id.phone_input);
         descriptionInput = view.findViewById(R.id.description_input);
         dateInput = view.findViewById(R.id.date_input);
-        location = view.findViewById(R.id.location_input);
         catergorySpinner = view.findViewById(R.id.catergory_spinner);
         saveButton = view.findViewById(R.id.save_button);
+        getCurrentLocationButton = view.findViewById(R.id.get_current_location);
 
         imageButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -125,7 +156,7 @@ public class CreateAdvertFragment extends Fragment {
                     Toast.makeText(requireContext(), "Missing date", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                if(location.getText().toString().isEmpty()) {
+                if(latLng == null) {
                     Toast.makeText(requireContext(), "Missing location", Toast.LENGTH_SHORT).show();
                     return;
                 }
@@ -138,8 +169,11 @@ public class CreateAdvertFragment extends Fragment {
                 values.put(DbHandler.LostItem.COLUMN_PHONE, phoneInput.getText().toString());
                 values.put(DbHandler.LostItem.COLUMN_DESCRIPTION, descriptionInput.getText().toString());
                 values.put(DbHandler.LostItem.COLUMN_DATE, dateInput.getText().toString());
-                values.put(DbHandler.LostItem.COLUMN_LOCATION, location.getText().toString());
+                values.put(DbHandler.LostItem.COLUMN_LOCATION, location);
                 values.put(DbHandler.LostItem.COLUMN_CATERGORY, catergorySpinner.getSelectedItemPosition());
+                values.put(DbHandler.LostItem.COLUMN_LOGITUDE, latLng.longitude);
+                values.put(DbHandler.LostItem.COLUMN_LATITUDE, latLng.latitude);
+
 
                 SQLiteDatabase dbHandler = new DbHandler(requireContext()).getWritableDatabase();
 
@@ -151,6 +185,59 @@ public class CreateAdvertFragment extends Fragment {
                 navController.popBackStack();
             }
         });
+
+
+        if(!Places.isInitialized()) {
+            Places.initialize(requireContext(), getString(R.string.google_maps_key));
+        }
+
+        AutocompleteSupportFragment autocompleteFragment = (AutocompleteSupportFragment)getChildFragmentManager().findFragmentById(R.id.autocomplete_fragment);
+
+        if(autocompleteFragment != null) {
+            autocompleteFragment.setPlaceFields(Arrays.asList(
+                    Place.Field.ID,
+                    Place.Field.LOCATION,
+                    Place.Field.FORMATTED_ADDRESS
+            ));
+
+            autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+                @Override
+                public void onPlaceSelected(@NonNull Place place) {
+                    Log.i("SearchFragment", "Place: " + place.getFormattedAddress() + ", " + place.getLocation().toString());
+                    latLng = place.getLocation();
+                    location = place.getFormattedAddress();
+                }
+
+                @Override
+                public void onError(@NonNull Status status) {
+                }
+            });
+
+            getCurrentLocationButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                            && ActivityCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+                        ActivityCompat.requestPermissions(requireActivity(), new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 101);
+                        return;
+                    }
+                    CancellationTokenSource cts = new CancellationTokenSource();
+                    fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext());
+
+                    fusedLocationClient.getCurrentLocation(Priority.PRIORITY_HIGH_ACCURACY, cts.getToken()).addOnSuccessListener(getActivity(), location1 -> {
+                                if (location1 != null) {
+                                    double latitude = location1.getLatitude();
+                                    double longitude = location1.getLongitude();
+                                    LatLng latLng1 = new LatLng(latitude, longitude);
+
+                                    latLng = latLng1;
+                                    location = "Current location";
+                                }
+                            });
+                }
+            });
+        }
 
 
         return view;

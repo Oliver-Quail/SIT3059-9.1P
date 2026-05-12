@@ -18,6 +18,7 @@ public class HomeFragment extends Fragment {
 
     Button createAdvertButton;
     Button showLostItemsButton;
+    Button showOnMapButton;
 
     public HomeFragment() {
         // Required empty public constructor
@@ -43,6 +44,7 @@ public class HomeFragment extends Fragment {
 
         createAdvertButton = view.findViewById(R.id.create_advert_button);
         showLostItemsButton = view.findViewById(R.id.show_lost_items_button);
+        showOnMapButton = view.findViewById(R.id.show_map_button);
 
         createAdvertButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -59,6 +61,15 @@ public class HomeFragment extends Fragment {
                 NavController navController = Navigation.findNavController(view);
 
                 navController.navigate(R.id.lost_found_fragment, new Bundle());
+            }
+        });
+
+        showOnMapButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                NavController navController = Navigation.findNavController(view);
+
+                navController.navigate(R.id.map_fragment, new Bundle());
             }
         });
 
